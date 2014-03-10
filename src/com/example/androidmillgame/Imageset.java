@@ -24,11 +24,11 @@ import java.util.HashMap;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.content.Context;
-//import android.util.Log;
+import android.util.Log;
 
 //--------------------------------------------------------------------------------------------------
 public class Imageset{
-	//private static final String TAG = Imageset.class.getSimpleName();
+	private static final String TAG = Imageset.class.getSimpleName();
     private Bitmap img;//...............................................Image.for.every.enum
     private HashMap <String,Bitmap[]> imgsetdict = new HashMap <String, Bitmap[] >();
     
@@ -52,15 +52,14 @@ public class Imageset{
             for (int n=0;n<=heigh/offsety-1;n++){
                 for(int m =0; m<=width/offsetx-1;m++){
                     Imageset[subImagecnt]=Bitmap.createBitmap(tmpimg, m*offsetx,n*offsety,offsetx,offsety);
+                    //Log.d(TAG, "n: "+n);
                     subImagecnt++;
-                    //Log.d(TAG, "subimagecnt"+ subImagecnt);
-                    if (subImagecnt==cnt) break;
                 }
-                if (subImagecnt==cnt) break;
             }
         }
         catch (Exception e){
             System.out.println("Error during subimage creation! "+e);
+          Log.d(TAG, "error");
         }
         return Imageset;
     }
