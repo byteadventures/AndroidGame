@@ -19,76 +19,83 @@
 package com.example.androidmillgame;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.support.v4.view.MotionEventCompat;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
-//--------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 public class GamePanel extends View implements Runnable {
 
-    private  int     PWIDTH          = 600;                           // ...........................................size.of.panel
-    private  int     PHEIGHT         = 600;
+    protected static int PWIDTH = 600; // .................................................................size.of.panel
+    protected static int PHEIGHT = 600;
 
-    // ........................................no.of.frames.that.can.be.skipped.in.any.one.animation.loop
-    // ...................................................i.e.the.games.state.is.updated.but.not.rendered
-    private static final int     MAX_FRAME_SKIPS = 5;
+// ...........................................................no.of.frames.that.can.be.skipped.in.any.one.animation.loop
+// ......................................................................i.e.the.games.state.is.updated.but.not.rendered
+    private static final int MAX_FRAME_SKIPS = 5;
 
-    private Thread               animator;                                        // ................................the.thread.that.performs.the.animation
-    private volatile boolean     running         = false;                         // ....................used.to.stop.the.animation.thread
-    private volatile boolean     isPaused        = false;
+    private Thread animator; // .................................................the.thread.that.performs.the.animation
+    private volatile boolean running = false; // ......................................used.to.stop.the.animation.thread
+    private volatile boolean isPaused = false;
 
-    private final long           period;                                          // ................................period.between.drawing.in._nanosecs_
-    private long                 gameStartTime;                                   // .............................................
-                                                                                   // when.the.game.started
-
-    // .............................................................................off-screen.rendering
-    private Canvas               dbg;
-    private Bitmap               dbImage         = null;
+    private final long period; // ..................................................period.between.drawing.in._nanosecs_
+    private long gameStartTime; // ............................................................// when.the.game.started
+// .................................................................................................off-screen.rendering
 
     private final GameController GC;
-    private final HUD            Display;
-    private DragPlayer           DraggablePoint;
-    private SmartJointFactory    generatedJoints;
+    private final HUD Display;
+    private DragPlayer DraggablePoint;
+    private SmartJointFactory generatedJoints;
 
-    int                          xforreset       = 0;
-    int                          yforreset       = 0;
-    private Images               imgres;
-    private static final String  TAG             = Imageset.class.getSimpleName();
+    int xforreset = 0;
+    int yforreset = 0;
+    private Images imgres;
+    private static final String TAG = Imageset.class.getSimpleName();
 
-    // --------------------------------------------------------------------------------------------------
+    protected static float dpi;
+    protected static float scale;
+    private Rect backgroundRect;
+    private Rect background;
+    private Rect resumeRect;
+
+    // ----------------------------------------------------------------------------------------------------------------
     public GamePanel(Context context, long period) {
         super(context);
         this.period = period;
-  
+
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Display wsize = wm.getDefaultDisplay();
         Point size = new Point();
         wsize.getSize(size);
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        wsize.getMetrics(displayMetrics);
+        this.dpi = displayMetrics.densityDpi;
+        this.PWIDTH = size.x;
+        this.PHEIGHT = size.y;
 
-        PWIDTH = size.x;
-        PHEIGHT = size.y;
-        Log.d(TAG, "PWIDTH: "+PWIDTH);//1024
-        Log.d(TAG, "PHEIGHT: "+PHEIGHT);//552
-        // setDoubleBuffered(false);
-        // setBackground(Color.black);
-        // setPreferredSize( new Dimension(PWIDTH, PHEIGHT));
         setFocusable(true);
-        requestFocus();// ...........................the.JPane.now.has.focus,.so.receives.key.events
-        imgres = new Images(context);// ...........................................................preload.resources
+        requestFocus();// ...............................................the.JPane.now.has.focus,.so.receives.key.events
+        imgres = new Images(context);// ..............................................................preload.resources
         generatedJoints = new SmartJointFactory(context);
         DraggablePoint = new DragPlayer();
+        backgroundRect = new Rect(PWIDTH / 2 - PHEIGHT / 2, 0, PWIDTH / 2 + PHEIGHT / 2, PHEIGHT);
+        background = new Rect(0, 0, imgres.getImage("background").getWidth(), imgres.getImage("background").getHeight());
+        scale = imgres.getImage("background").getHeight() / PHEIGHT;
+        int resumescaled = imgres.getImage("resumenop").getWidth();
+        resumeRect = new Rect(PWIDTH / 2 - resumescaled / 2, PHEIGHT / 2 - resumescaled / 2 + Pd2px.pd2px(50), PWIDTH
+                / 2 + resumescaled / 2, PHEIGHT / 2 + resumescaled / 2 + Pd2px.pd2px(50));
         GC = new GameController(generatedJoints.Joints, DraggablePoint, context);
-        Display = new HUD(300, 300, imgres.getImage("hud"));
+        Display = new HUD(PWIDTH / 2, PHEIGHT / 2, imgres.getImage("hud"));
         this.startGame();
     }
 
-    // ...................................................................................event.listeners
+//......................................................................................................event.listeners
     public boolean onTouchEvent(MotionEvent event) { // handle user action
         int action = MotionEventCompat.getActionMasked(event);
 
@@ -103,22 +110,13 @@ public class GamePanel extends View implements Runnable {
             return true;
         }
         if (action == MotionEvent.ACTION_MOVE) {
-            if (GC.millevent == 0)
-                GC.UpdateMouseLocation((int) event.getX(), (int) event.getY());
+            if (GC.millevent == 0) GC.UpdateMouseLocation((int) event.getX(), (int) event.getY());
             return true;
         }
         return super.onTouchEvent(event);
     }
 
-    // ....................................wait.for.the.JPanel.to.be.added.to.the.JFrame.before.starting
-    /*
-     * @Override public void addNotify(){
-     * super.addNotify();//.....................
-     * ..................................creates.the.peer
-     * startGame();//.........
-     * ....................................................start.the.thread }
-     */
-    // ...................................................................initialise.and.start.the.thread
+//.........................................................wait.for.the.JPanel.to.be.added.to.the.JFrame.before.starting
     private void startGame() {
         if (animator == null || !running) {
             animator = new Thread(this);
@@ -126,68 +124,55 @@ public class GamePanel extends View implements Runnable {
         }
     }
 
-    // -------------------------------------------------------------------------game-life-cycle-methods
-    // ....................................................called.by.the.JFrame's.window.listener.methods
+// ----------------------------------------------------------------------------------------------game-life-cycle-methods
+// .......................................................................called.by.the.JFrame's.window.listener.methods
 
-    public void resumeGame() {// ....................called.when.the.JFrame.is.activated./.deiconified
+    public void resumeGame() {// .....................................called.when.the.JFrame.is.activated./.deiconified
         isPaused = false;
     }
 
-    public void pauseGame() {// .....................called.when.the.JFrame.is.deactivated./.iconified
+    public void pauseGame() {// ......................................called.when.the.JFrame.is.deactivated./.iconified
         isPaused = true;
     }
 
-    public void stopGame() {// ......................................called.when.the.JFrame.is.closing
+    public void stopGame() {// ........................................................called.when.the.JFrame.is.closing
         running = false;
     }
 
-    // --------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
     @Override
-    // .......................................The.frame.of.the.animation.are.drawn.inside.the.while.loop.
+//...........................................................The.frame.of.the.animation.are.drawn.inside.the.while.loop.
     public void run() {
         long beforeTime, afterTime, timeDiff, sleepTime;
         long overSleepTime = 0L;
         long excess = 0L;
-
         gameStartTime = System.currentTimeMillis();
         beforeTime = gameStartTime;
-
         running = true;
 
         while (running) {
             gameUpdate();
-
             this.postInvalidate();
             afterTime = System.currentTimeMillis();
             timeDiff = afterTime - beforeTime;
             sleepTime = (period - timeDiff) - overSleepTime;
-
-            if (sleepTime > 0) {// ..........................................some.time.left.in.this.cycle
+            if (sleepTime > 0) {// ........................................................some.time.left.in.this.cycle
                 try {
-                    Thread.sleep(sleepTime / 1000000L);// .......................................nano
-                                                       // -> ms
-                } catch (InterruptedException ex) {
+                    Thread.sleep(sleepTime / 1000000L);// ...................................................nano-> ms
+                }
+                catch (InterruptedException ex) {
                     System.out.println("Error during thread sleep " + ex);
                 }
             }
-
             beforeTime = System.currentTimeMillis();
-
-            // .....................................If frame animation is taking
-            // too long, update the game state
-            // ...........................................without rendering it,
-            // to get the updates/sec nearer to
-            // .................................................................................the
-            // required FPS.
-
             int skips = 0;
             while ((excess > period) && (skips < MAX_FRAME_SKIPS)) {
                 excess -= period;
-                gameUpdate(); // update state but don't render
+                gameUpdate(); //...........................................................update.state.but.don't.render
                 skips++;
             }
         }
-        System.exit(0); // so window disappears
+        System.exit(0); //..........................................................................so.window.disappears
     }
 
     private void gameUpdate() {
@@ -197,30 +182,28 @@ public class GamePanel extends View implements Runnable {
         }
         if (GC.getGameOver()) {
             Display.Update(GC.getInfoForHUD());
-            if ((xforreset < 280 + 40) && (xforreset > 280))
-                if ((yforreset < 335 + 40) && (yforreset > 335))
-                    GC.setReset();
+            if (resumeRect.contains(xforreset, yforreset)) GC.setReset();
         }
     }
 
-    protected void onDraw(Canvas canvas) {// ...........use.active.rendering.to.put.the.buffered.image.on-screen
+    protected void onDraw(Canvas canvas) {// ...................use.active.rendering.to.put.the.buffered.image.on-screen
 
         try {
-            // ..............................................draw.the.background:.use.the.image.or.a.black.color
-            canvas.drawBitmap(imgres.getImage("background"), 0, 0, null);
-            for (int i = 0; i < 24; i++) {// ......................................................render.joints
-                generatedJoints.Joints[i].onDraw(canvas);
+//...................................................................draw.the.background:.use.the.image.or.a.black.color
+            canvas.drawRGB(0, 0, 0);
+            canvas.drawBitmap(imgres.getImage("background"), background, backgroundRect, null);
+            for (int i = 0; i < 24; i++) {// ..............................................................render.joints
+                generatedJoints.Joints[i].Draw(canvas);
             }
-            DraggablePoint.onDraw(canvas);
-            Display.onDraw(canvas);
+            DraggablePoint.Draw(canvas);
+            Display.Draw(canvas);
             if (GC.getGameOver())
-                canvas.drawBitmap(imgres.getImage("resumeok"), 300 - 20, 335, null);
-            else
-                canvas.drawBitmap(imgres.getImage("resumenop"), 300 - 20, 335, null);
-            // Log.d(TAG, "render now");
-        } catch (Exception e) {
-            System.out.println("Graphics context error: " + e);
+                canvas.drawBitmap(imgres.getImage("resumeok"), null, resumeRect, null);
+            else canvas.drawBitmap(imgres.getImage("resumenop"), null, resumeRect, null);
+        }
+        catch (Exception e) {
+            Log.d(TAG, "Graphics context error: " + e);
         }
     }
 }
-// --------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------

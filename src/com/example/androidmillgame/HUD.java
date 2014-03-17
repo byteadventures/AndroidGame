@@ -18,78 +18,87 @@
 //--------------------------------------------------------------------------------------------------
 package com.example.androidmillgame;
 
-import android.graphics.Canvas;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
-//--------------------------------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------------------------------------------------
 public class HUD {
 
     private boolean isActive = true;
-    
+
     Bitmap image;
 
     Bitmap hudimage = null;
-    
-    private int angleplaced1=0;
-    private int angleplaced2=0;
-    private int angleremoved1=0;
-    private int angleremoved2=0;
+
+    private int angleplaced1 = 0;
+    private int angleplaced2 = 0;
+    private int angleremoved1 = 0;
+    private int angleremoved2 = 0;
 
     private int origx;
     private int origy;
-    private int diam=175;
+    private int diam;
 
     private Paint paint;
     private RectF rectf;
-//--------------------------------------------------------------------------------------------------
-    public HUD(int x, int y, Bitmap hud){
-       this.origx=x;
-       this.origy=y;
-       this.hudimage=hud;
-       this.rectf= new RectF(origx-diam/2,origy-diam/2,origx+diam/2,origy+diam/2);
-       paint = new Paint();
-       this.paint.setAntiAlias(true);
-       this.paint.setStyle(Paint.Style.FILL);
+    private Rect hudRect;
+    private Rect hud;
+
+//---------------------------------------------------------------------------------------------------------------------
+    public HUD(int x, int y, Bitmap image) {
+        this.origx = x;
+        this.origy = y;
+        this.hudimage = image;
+        diam = this.hudimage.getWidth();
+        this.rectf = new RectF(origx - diam / 2 + Pd2px.pd2px(15), origy - diam / 2 + Pd2px.pd2px(15), origx + diam / 2
+                - Pd2px.pd2px(15), origy + diam / 2 - Pd2px.pd2px(15));
+        hudRect = new Rect(origx - hudimage.getWidth() / 2 + Pd2px.pd2px(10), origy - hudimage.getHeight() / 2
+                + Pd2px.pd2px(10), origx + hudimage.getWidth() / 2 - Pd2px.pd2px(10), origy + hudimage.getHeight() / 2
+                - Pd2px.pd2px(10));
+        hud = new Rect(0, 0, hudimage.getWidth(), hudimage.getHeight());
+        paint = new Paint();
+        this.paint.setAntiAlias(true);
+        this.paint.setStyle(Paint.Style.FILL);
     }
 
-    public void setActive(){isActive=true;}
- 
-    public void setNoActive(){isActive=false;}
-  
-    public void Update(int[] tmp){
-        angleplaced1=20*tmp[0];
-        angleplaced2=20*tmp[1];
-        angleremoved1=20*tmp[2];
-        angleremoved2=20*tmp[3];
+    public void setActive() {
+        isActive = true;
     }
 
-    public void Reset(){
-        angleplaced1=0;
-        angleplaced2=0;
-        angleremoved1=0;
-        angleremoved2=0;
+    public void setNoActive() {
+        isActive = false;
     }
 
-    public void onDraw(Canvas canvas) {
-        if (isActive) { 
+    public void Update(int[] tmp) {
+        angleplaced1 = 20 * tmp[0];
+        angleplaced2 = 20 * tmp[1];
+        angleremoved1 = 20 * tmp[2];
+        angleremoved2 = 20 * tmp[3];
+    }
+
+    public void Reset() {
+        angleplaced1 = 0;
+        angleplaced2 = 0;
+        angleremoved1 = 0;
+        angleremoved2 = 0;
+    }
+
+    public void Draw(Canvas canvas) {
+        if (isActive) {
             this.paint.setColor(Color.GRAY);
-            canvas.drawArc(rectf, 0, 360,true, this.paint);
-            //g.fillArc(origx-diam/2, origy-diam/2, diam, diam, 0, 360);
+            canvas.drawArc(rectf, 0, 360, true, this.paint);
             this.paint.setColor(Color.GREEN);
-            canvas.drawArc(rectf, 90+angleplaced1, 180-angleplaced1,true, this.paint);
-            canvas.drawArc(rectf, -90, angleremoved1,true, this.paint);
-            //g.fillArc(origx-diam/2, origy-diam/2, diam, diam, 90+angleplaced1, 180-angleplaced1);
-            //g.fillArc(origx-diam/2, origy-diam/2, diam, diam, -90,angleremoved1 );
+            canvas.drawArc(rectf, 90 + angleplaced1, 180 - angleplaced1, true, this.paint);
+            canvas.drawArc(rectf, -90, angleremoved1, true, this.paint);
             this.paint.setColor(Color.RED);
-            canvas.drawArc(rectf, -90+angleplaced2, 180-angleplaced2,true, this.paint);
-            canvas.drawArc(rectf, 90, angleremoved2,true, this.paint);
-            //g.fillArc(origx-diam/2, origy-diam/2, diam, diam, -90+angleplaced2,180-angleplaced2 );
-            //g.fillArc(origx-diam/2, origy-diam/2, diam, diam, 90, angleremoved2);
-            canvas.drawBitmap(hudimage,origx-90,origy-90,null);
+            canvas.drawArc(rectf, -90 + angleplaced2, 180 - angleplaced2, true, this.paint);
+            canvas.drawArc(rectf, 90, angleremoved2, true, this.paint);
+            canvas.drawBitmap(hudimage, hud, hudRect, null);
         }
     }
-
 }
-//--------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------

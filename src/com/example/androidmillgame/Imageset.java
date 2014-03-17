@@ -18,54 +18,52 @@
 //--------------------------------------------------------------------------------------------------
 package com.example.androidmillgame;
 
-
 import java.util.HashMap;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.content.Context;
 import android.util.Log;
 
-//--------------------------------------------------------------------------------------------------
-public class Imageset{
-	private static final String TAG = Imageset.class.getSimpleName();
+//---------------------------------------------------------------------------------------------------------------------
+public class Imageset {
+    private static final String TAG = Imageset.class.getSimpleName();
     private Bitmap img;//...............................................Image.for.every.enum
-    private HashMap <String,Bitmap[]> imgsetdict = new HashMap <String, Bitmap[] >();
-    
-    public Imageset(Context context){//..................................................enum.constructor
-        try{
+    private HashMap<String, Bitmap[]> imgsetdict = new HashMap<String, Bitmap[]>();
+
+    public Imageset(Context context) {//...............................................................enum.constructor
+        try {
             img = BitmapFactory.decodeResource(context.getResources(), R.drawable.imageset);
-            imgsetdict.put("imageset", this.createImageSet(img, 56, 55, 20));
+            imgsetdict.put("imageset", this.createImageSet(img, Pd2px.pd2px(56), Pd2px.pd2px(55), 20));
         }
         catch (Exception e) {
-        	System.out.println("Error during imageset loading!");
+            Log.d(TAG, "Error during imageset loading! " + e);
         }
     }
 
-//----------------------------------------------------------------------Create-sub-images-from-sheet
-    public Bitmap[] createImageSet(Bitmap tmpimg, int offsetx, int offsety, int cnt){
-        int width=tmpimg.getWidth();
-        int heigh=tmpimg.getHeight();
-        int subImagecnt=0;
-        Bitmap[] Imageset= new Bitmap[cnt];
-        try{
-            for (int n=0;n<=heigh/offsety-1;n++){
-                for(int m =0; m<=width/offsetx-1;m++){
-                    Imageset[subImagecnt]=Bitmap.createBitmap(tmpimg, m*offsetx,n*offsety,offsetx,offsety);
+//-----------------------------------------------------------------------------------------Create-sub-images-from-sheet
+    public Bitmap[] createImageSet(Bitmap tmpimg, int offsetx, int offsety, int cnt) {
+        int width = tmpimg.getWidth();
+        int heigh = tmpimg.getHeight();
+        int subImagecnt = 0;
+        Bitmap[] Imageset = new Bitmap[cnt];
+        try {
+            for (int n = 0; n <= heigh / offsety - 1; n++) {
+                for (int m = 0; m <= width / offsetx - 1; m++) {
+                    Imageset[subImagecnt] = Bitmap.createBitmap(tmpimg, m * offsetx, n * offsety, offsetx, offsety);
                     //Log.d(TAG, "n: "+n);
                     subImagecnt++;
                 }
             }
         }
-        catch (Exception e){
-            System.out.println("Error during subimage creation! "+e);
-          Log.d(TAG, "error");
+        catch (Exception e) {
+            Log.d(TAG, "Error during subimage creation! " + e);
         }
         return Imageset;
     }
 
-    public Bitmap[] getImageSet(String name){
+    public Bitmap[] getImageSet(String name) {
         return imgsetdict.get(name);
     }
 }
-//--------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------

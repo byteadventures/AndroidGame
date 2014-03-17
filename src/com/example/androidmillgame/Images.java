@@ -18,28 +18,34 @@
 //--------------------------------------------------------------------------------------------------
 package com.example.androidmillgame;
 
+import java.util.HashMap;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.content.Context;
-import java.util.*;
-//--------------------------------------------------------------------------------------------------
+import android.util.Log;
 
-public class Images{
-	private HashMap <String,Bitmap> imgdict = new HashMap <String, Bitmap>();
-    public Images(Context context){
-    	try{
-        imgdict.put("background", BitmapFactory.decodeResource(context.getResources(), R.drawable.backgroundv2));
-        imgdict.put("hud", BitmapFactory.decodeResource(context.getResources(), R.drawable.hud));
-        imgdict.put("resumeok", BitmapFactory.decodeResource(context.getResources(), R.drawable.resumeok));
-        imgdict.put("resumenop", BitmapFactory.decodeResource(context.getResources(), R.drawable.resumenop));
-    	}
-    	catch (Exception e){
-    		System.out.println("Error during images loading! "+e);
-    	}
-}
-    public Bitmap getImage(String name){
+//---------------------------------------------------------------------------------------------------------------------
+
+public class Images {
+    private static final String TAG = Imageset.class.getSimpleName();
+    private HashMap<String, Bitmap> imgdict = new HashMap<String, Bitmap>();
+
+    public Images(Context context) {
+        try {
+            imgdict.put("background", BitmapFactory.decodeResource(context.getResources(), R.drawable.backgroundv2));
+            imgdict.put("hud", BitmapFactory.decodeResource(context.getResources(), R.drawable.hud));
+            imgdict.put("resumeok", BitmapFactory.decodeResource(context.getResources(), R.drawable.resumeok));
+            imgdict.put("resumenop", BitmapFactory.decodeResource(context.getResources(), R.drawable.resumenop));
+        }
+        catch (Exception e) {
+
+            Log.d(TAG, "Error during images loading! " + e);
+        }
+    }
+
+    public Bitmap getImage(String name) {
         return imgdict.get(name);
     }
 }
-//--------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------

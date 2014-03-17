@@ -18,22 +18,22 @@
 //--------------------------------------------------------------------------------------------------
 package com.example.androidmillgame;
 
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.Bundle;
 import android.view.Window;
-//--------------------------------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------------------------------------------------
 public class AndroidMill extends Activity {
 
-    final private static int DEFAULT_FPS = 40; 
-    
+    final private static int DEFAULT_FPS = 40;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
-        
-        long period = (long) 1000.0/DEFAULT_FPS;
-        GamePanel GP=new GamePanel(this,period*1000000L);
+
+        long period = (long) 1000.0 / DEFAULT_FPS;
+        GamePanel GP = new GamePanel(this, period * 1000000L);
         setContentView(GP);
     }
-  
 }

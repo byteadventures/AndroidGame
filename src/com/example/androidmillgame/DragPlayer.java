@@ -21,46 +21,54 @@ package com.example.androidmillgame;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.util.Log;
 
-//-------------------------------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------------------------------
 public class DragPlayer {
-
+    private static final String TAG = Imageset.class.getSimpleName();
     private boolean isActive = false;
 
     private int posx;
     private int posy;
     private int origx;
     private int origy;
-    
+
     private Paint paint;
-//--------------------------------------------------------------------------------------------------
-    public DragPlayer(){
+
+//---------------------------------------------------------------------------------------------------------------------
+    public DragPlayer() {
         paint = new Paint();
         this.paint.setAntiAlias(true);
-        this.paint.setColor(Color.MAGENTA); 
+        this.paint.setColor(Color.MAGENTA);
     }
 
-    public void setActive(){isActive=true;}
- 
-    public void setNoActive(){isActive=false;}
+    public void setActive() {
+        isActive = true;
+    }
 
-    public void Update(int x, int y){
-        posx=x; 
-        posy=y;
+    public void setNoActive() {
+        isActive = false;
     }
-//--------------------------------------------------------------------------------------------------
-    public void setOrig(int x, int y){
-        origx=x;
-        origy=y;
+
+    public void Update(int x, int y) {
+        posx = x;
+        posy = y;
     }
-//--------------------------------------------------------------------------------------------------
-    public void onDraw(Canvas canvas){
-        if (isActive) { 
-            try{
+
+//---------------------------------------------------------------------------------------------------------------------
+    public void setOrig(int x, int y) {
+        origx = x;
+        origy = y;
+    }
+
+//---------------------------------------------------------------------------------------------------------------------
+    public void Draw(Canvas canvas) {
+        if (isActive) {
+            try {
                 canvas.drawLine(origx, origy, posx, posy, this.paint);
             }
-            catch(Exception e){
-            	System.out.println("Error during Draggable drawing! "+e);
+            catch (Exception e) {
+                Log.d(TAG, "Error during Draggable drawing! " + e);
             }
         }
     }
